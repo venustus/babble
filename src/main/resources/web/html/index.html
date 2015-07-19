@@ -1,0 +1,419 @@
+<!doctype html>
+    <head>
+        <meta charset="utf-8">
+        <title>Social Radio</title>
+        <meta name="description" content="This is a demo for HackIndia hackathon">
+        <script src="/tts/scripts/recog.js"></script>
+    </head>
+    <body>
+		<div id="fb-root"></div>
+	  <script>
+
+        var cmdMgr = window.commandManager("facebook",
+                {
+                    "start": function() {
+                        // switch off mic
+                        micToggle();
+                        testAPI();
+                    },
+                    "stop": function() {
+                        micToggle();
+                        clearTimeout(nextTimer);
+                    },
+                    "continue": function() {
+                        next();
+                    },
+                    "go away": function() {
+                        micToggle();
+                        clearTimeout(nextTimer);
+                        window.close();
+                    }
+                },
+                function() {
+                    cmdMgr.receiveNextCommand();
+                }
+        ), nextTimer;
+
+        function nextTimerExpired() {
+            micToggle();
+            document.getElementById("go_next").click();
+        }
+
+        function micToggle() {
+            var micOn = document.getElementById("mic-on"),
+                    micOff = document.getElementById("mic-off");
+            if(micOn.style.display == "none") {
+                micOn.style.display = "table-cell";
+                micOff.style.display = "none";
+            }
+            else {
+                micOn.style.display = "none";
+                micOff.style.display = "table-cell";
+            }
+        }
+
+        function next() {
+            micToggle();
+            nextTimer = setTimeout(nextTimerExpired, 5000);
+        };
+
+        function speakText(text) {
+            var audioElem = document.createElement("audio");
+            audioElem.setAttribute("autoplay", "true");
+            audioElem.setAttribute("preload", "auto");
+            audioElem.setAttribute("src", "/tts/tts?t=" + encodeURIComponent(text));
+            document.body.appendChild(audioElem);
+            audioElem.onended = next;
+            document.getElementById("transcript").innerHTML = "<p>" + text + "</p>";
+        }
+		
+		function statusChangeCallback(response) {
+		    console.log('statusChangeCallback');
+		    console.log(response);
+		    // The response object is returned with a status field that lets the
+		    // app know the current login status of the person.
+		    // Full docs on the response object can be found in the documentation
+		    // for FB.getLoginStatus().
+		    if (response.status === 'connected') {
+		      // Logged into your app and Facebook.
+
+		    } else if (response.status === 'not_authorized') {
+		      // The person is logged into Facebook, but not your app.
+		      document.getElementById('status').innerHTML = 'Please log ' +
+		        'into this app.';
+		    } else {
+		      // The person is not logged into Facebook, so we're not sure if
+		      // they are logged into this app or not.
+		      document.getElementById('status').innerHTML = 'Please log ' +
+		        'into Facebook.';
+		    }
+		 }
+		
+		// This function is called when someone finishes with the Login
+		  // Button.  See the onlogin handler attached to it in the sample
+		  // code below.
+		  function checkLoginState() {
+		    FB.getLoginStatus(function(response) {
+		      statusChangeCallback(response);
+		    });
+		  }
+		
+		
+	    window.fbAsyncInit = function() {
+	      FB.init({
+	        appId      : '101440546873067',
+			cookie     : true,
+	        xfbml      : true,
+	        version    : 'v2.4'
+	      });
+		  
+	  	  FB.getLoginStatus(function(response) {
+	  	    statusChangeCallback(response);
+	  	  });
+			
+	    };
+		
+	  // Now that we've initialized the JavaScript SDK, we call 
+	    // FB.getLoginStatus().  This function gets the state of the
+	    // person visiting this page and can return one of three states to
+	    // the callback you provide.  They can be:
+	    //
+	    // 1. Logged into your app ('connected')
+	    // 2. Logged into Facebook, but not your app ('not_authorized')
+	    // 3. Not logged into Facebook and can't tell if they are logged into
+	    //    your app or not.
+	    //
+	    // These three cases are handled in the callback function.
+
+	    
+
+		// Load the SDK asynchronously
+	    (function(d, s, id){
+	       var js, fjs = d.getElementsByTagName(s)[0];
+	       if (d.getElementById(id)) {return;}
+	       js = d.createElement(s); js.id = id;
+		   // Prod
+	       js.src = "//connect.facebook.net/en_US/sdk.js";
+		   // debug
+		   // js.src = "//connect.facebook.net/en_US/sdk/debug.js";
+	       fjs.parentNode.insertBefore(js, fjs);
+	     }(document, 'script', 'facebook-jssdk'));
+		 
+	   // Here we run a very simple test of the Graph API after login is
+	     // successful.  See statusChangeCallback() for when this call is made.
+	     function testAPI() {
+			 document.getElementById('status').innerHTML = 'Welcome!  Fetching your information.... ';
+		
+		   console.log('Getting Login Information');
+		   var fb_user_id;	 
+	       FB.api('/me', function(response) {
+	         console.log('Successful login for: ' + response.name);
+	         document.getElementById('status').innerHTML =
+	           'Thanks for logging in, ' + response.name + '!';
+			   fb_user_id = response.userID;
+	       });
+		   
+		   console.log('Getting User Feed');
+		   /* make the API call */
+		   FB.api(
+		       "/me/feed?summary=true",{
+		       		"fields" : [
+		       			"caption",
+						"description",
+						"to",
+						"from",
+						"link",
+						"message",
+						"name",
+						"status_type",
+						"story",
+						"type"
+		       		]
+		       },
+		       function (response) {
+		         if (response && !response.error) {
+		           /* handle the result */
+					 console.log('Feed response successfully received!');
+					 console.log(response);
+					 var posts = response.data;
+					SocialRadio(posts);
+		         } else {
+		         	
+					alert('fetching feed response failed, aborting!');
+		         }
+		       }
+		   );
+		   
+		   
+	     }
+		 
+		 var SocialRadio = (function(posts){
+
+				 var currIndex = 0;
+				 
+				 
+				 var activate = function(){
+					 add_post(posts[currIndex],function(){
+						 speakText(dialogue(posts[currIndex]));
+                         //console.log(posts[currIndex]);
+					 });
+					 
+					 
+					 document.getElementById("go_previous").addEventListener("click", function(){
+					     previous();
+					 });
+					 
+					 document.getElementById("go_next").addEventListener("click", function(){
+					     next();
+					 });
+				 };
+			 	 
+				 
+				 function next(){
+					 currIndex++;
+					 currIndex = currIndex%posts.length;
+					 var post = posts[currIndex];
+					 
+					 var ids = post.id.split("_");
+					 var element_id = "post_"+ids[0]+"_"+ids[1];
+					 var elem = document.getElementById(element_id);
+					 if(!elem){
+					 	add_post(post, function(){
+					 		
+		   					 var elem = document.getElementById(element_id);
+					 
+		   					 var children = document.getElementById("user_feed").children;
+		   					 for(var i=0;i<children.length;i++){
+		   						 children[i].style.display = "none";
+		   					 }
+		   					 elem.style.display="";
+							 speakText(dialogue(post));
+                             //console.log(post);
+					 	});
+					 } else {
+					 	
+	   					 elem = document.getElementById(element_id);
+				 
+	   					 var children = document.getElementById("user_feed").children;
+	   					 for(var i=0;i<children.length;i++){
+	   						 children[i].style.display = "none";
+	   					 }
+	   					 elem.style.display="";
+						 speakText(dialogue(post));
+                         //console.log(post);
+					 }
+					 
+				 }
+				 
+				 function dialogue(post){
+                     var string = "";
+                     /*
+                     if(post.message) {
+                        string += post.from.name + " says " + post.message + " about " + post.name + " from " + post.caption;
+                     }
+                     */
+                     if(post.type == "link") {
+                         string += post.from.name + " shared a link ";
+                         if (post.type == "link") {
+                             string += post.name;
+                             string += " from " + post.caption;
+                         }
+                     }
+                     else if(post.type == "photo") {
+                         string += post.from.name + " shared a photo ";
+                         if(post.message) string += " with message " + post.message;
+                     }
+                     else if(post.type == "status") {
+                         string += post.from.name + " says " + post.message;
+                     }
+                     if(post.like_count > 0) {
+                         if(post.like_count == 1) string += " and the post was liked once";
+                         else string += " and the post was liked " + post.like_count + " times";
+                     }
+					 return string;
+				 }
+				 
+				 function previous(){
+					 currIndex--;
+					 currIndex = (currIndex<0)? posts.length-1: currIndex;
+					 var post = posts[currIndex];
+					 //console.log(post);
+					 var ids = post.id.split("_");
+					 var element_id = "post_"+ids[0]+"_"+ids[1];
+					 var elem = document.getElementById(element_id);
+					 if(!elem){
+					 	add_post(post, function(){
+		   					 var elem = document.getElementById(element_id);
+					 
+		   					 var children = document.getElementById("user_feed").children;
+		   					 for(var i=0;i<children.length;i++){
+		   						 children[i].style.display = "none";
+		   					 }
+		   					 elem.style.display="";
+							 speakText(dialogue(post));
+                             //console.log(post);
+							
+					 	});
+					 } else {
+					 	
+	   					 elem = document.getElementById(element_id);
+				 
+	   					 var children = document.getElementById("user_feed").children;
+	   					 for(var i=0;i<children.length;i++){
+	   						 children[i].style.display = "none";
+	   					 }
+	   					 elem.style.display="";
+						 speakText(dialogue(post));
+                         //console.log(post);
+					 }
+					 
+					 
+					 
+				 }
+				 
+				 
+				 function add_post(post, callback){
+				   console.log('Getting likes');
+		  		   FB.api(
+		  		       "/"+post.id+"/likes",{
+						   "summary": true
+		  		       },
+		  		       function (response) {
+						   // this is the post where we show full 
+		  		         if (response && !response.error) {
+							 console.log('Likes received, preparing to show data');
+							 /* handle the result */
+							 var like_count = response.data.length;
+                             post.like_count = like_count;
+		  		           	 var ids = post.id.split("_");
+							 var element_id = "post_"+ids[0]+"_"+ids[1];
+							 var link = "https://www.facebook.com/" + ids[0] + "/posts/" +ids[1];
+							 var html = '<div id="' + element_id + '"><div class="fb-post" data-href="' + link + '" data-width="500"></div></div>';
+							 document.getElementById('user_feed').innerHTML += html;
+							 FB.XFBML.parse(document.getElementById(element_id));
+							 callback();
+		  		         }
+		  		       }
+		  		   );
+
+				 }
+				 
+				 activate();
+
+		 	}
+
+		 );
+		 
+		 
+	  </script>
+       
+	   <!--
+	     Below we include the Login Button social plugin. This button uses
+	     the JavaScript SDK to present a graphical Login button that triggers
+	     the FB.login() function when clicked.
+	   -->
+
+	   <fb:login-button scope="public_profile,email,user_friends,user_photos,user_posts" size="xlarge" auto_logout_link="true" onlogin="checkLoginState();"></fb:login-button>
+	   
+	   <!-- Facebook Permissions
+		   
+		   - publish_actions
+		   - user_photos
+		   - user_posts
+	   	
+		Judging criteria - 
+			unique
+		   	useful
+		   	design
+		   	feasible
+	   -->
+		  
+	   <div id="status" style="margin: 10px auto;">Checking with facebook. Please Wait ... </div>
+	   <br/><hr/>
+	   <br/>
+	   <div class="content_main" style="display: table; width: 100%;">
+           <img src="https://www.google.com/intl/en/chrome/assets/common/images/content/mic-animate.gif"
+                style="margin: 0px auto; display: none; text-align: center;"
+                id="mic-on"/>
+           <img src="https://www.google.com/intl/en/chrome/assets/common/images/content/mic.gif"
+                style="margin: 0px auto; display: table-cell; text-align: center;"
+                id="mic-off"/>
+		<div class="content_center" style="margin: 0px auto; display: table;">
+			<div id="user_feed" class="slider">
+				<!-- <img src="images/image1.jpg" />
+				<img src="images/image2.jpg" />
+				<div class="just_text">This one's just text.</div>
+				<img src="images/image3.jpg" />
+				<div><img src="images/image4.jpg" /><span class="caption">This one has a caption</span></div> -->
+					
+			</div>
+		</div>
+	   </div>
+	   <br/><br/>
+        <div id="transcript" style="text-align: center;">
+        </div>
+	   <div class ="navigation_buttons">
+		<div class="content_left" style="float: left; width: 50%; text-align: right;">
+			<input id="go_previous" type="button" value="previous" />
+		</div>
+		
+		
+		<div id="content_right" style="float: left; width: 50%; text-align: left;">	
+			<input id="go_next" type="button" value="next" />
+		</div>
+		
+	   </div>
+
+    <script type="text/javascript">
+        var micOff = document.getElementById("mic-off"),
+                micOn = document.getElementById("mic-on");
+        micOff.addEventListener("click", function(e) {
+            micToggle();
+            cmdMgr.receiveNextCommand();
+        }, false);
+        micOn.addEventListener("click", micToggle, false);
+
+    </script>
+	   
+    </body>
+</html>
