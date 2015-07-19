@@ -9,6 +9,7 @@
       google.load('search', '1');
 
       var imageSearch;
+	  var link;// = "http://fourgrafx.com/braink/multipage/img/demo/blog/blog3-alt2.jpg";
 
       function searchComplete() {
 		// console.log(imageSearch.results);
@@ -46,10 +47,12 @@
 		} else {
 			ans = "I think the image is about " + ans;
 		}
-		document.getElementById("content").innerHTML = ans;
+		document.getElementById("content").innerHTML = "<img src='"+link+"' /><br/><br/>"+ans;
       }
 
       function OnLoad() {
+		  
+		link = document.getElementById("link_input").value;
       
         // Create an Image Search instance.
         imageSearch = new google.search.ImageSearch();
@@ -59,17 +62,24 @@
         imageSearch.setSearchCompleteCallback(this, searchComplete, null);
 
         // Find me a beautiful car.
-        imageSearch.execute("http://fourgrafx.com/braink/multipage/img/demo/blog/blog3-alt2.jpg");
+        imageSearch.execute(link);
         
         // Include the required Google branding
         // google.search.Search.getBranding('branding');
       }
-      google.setOnLoadCallback(OnLoad);
+      google.setOnLoadCallback();
     </script>
 
   </head>
-  <body style="font-family: Arial;border: 0 none;">
-    <div id="branding"  style="float: left;"></div><br />
-    <div id="content">Loading...</div>
+  <body >
+	  <div id="main" style="text-align:center">
+		<form onsubmit="OnLoad();return false;">
+	  		<input type="text" id="link_input" value="enter your image here" style="margin:20px; width: 300px; height:20px">
+		</form>
+	  </div>
+	  <br/>
+	  <hr/><br />
+	  
+    <div id="content" style="margin:0 auto; display:table; text-align:center">Enter the image you want to check description for ... </div>
   </body>
 </html>
