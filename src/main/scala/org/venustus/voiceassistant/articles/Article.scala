@@ -2,6 +2,7 @@ package org.venustus.voiceassistant.articles
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, TextNode, Node}
+import org.jsoup.parser.Parser
 import org.venustus.voiceassistant.items.Utterable
 import scala.collection.JavaConverters._
 
@@ -9,11 +10,11 @@ import scala.collection.JavaConverters._
  * Created by venkat on 18/07/15.
  */
 class Article(url: String) extends Utterable {
-    val doc = Jsoup connect (url)
+    val doc = (Jsoup connect (url)).get()
     val textualTagNames = Set("p", "i", "b", "em", "li", "ol")
     val excludeTagNames = Set("pre")
-    val articleElems = doc.get.select("article")
-    val articleContentRoot: Node = if(articleElems.size > 0) articleElems.get(0) else extractContentRoot(doc.get)._3.get
+    val articleElems = doc.select("article")
+    val articleContentRoot: Node = extractContentRoot(doc)._3.get
 
     def getContent: String = extractContent(articleContentRoot)
 

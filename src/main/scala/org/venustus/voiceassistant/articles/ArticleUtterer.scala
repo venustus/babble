@@ -11,6 +11,6 @@ class ArticleUtterer extends Utterer {
 
     override def utter(article: Utterable, sg: SpeechSynthesisEngine, oh: SpeechOutputHandler): Unit = {
         if(!article.isInstanceOf[Article]) throw new IllegalAccessException("I can only utter articles")
-        sg.synthesizeSpeech(article.asInstanceOf[Article].getContent, oh)
+        sg.synthesizeSpeech(article.asInstanceOf[Article].getContent.substring(0, 8100), oh)
     }
 }

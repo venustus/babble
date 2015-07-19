@@ -8,7 +8,7 @@
     <body>
 		<div id="fb-root"></div>
 	  <script>
-
+        var lastLink;
         var cmdMgr = window.commandManager("facebook",
                 {
                     "start": function() {
@@ -22,6 +22,11 @@
                     },
                     "continue": function() {
                         next();
+                    },
+                    "read that": function() {
+                        micToggle();
+                        clearTimeout(nextTimer);
+                        speakUrl(lastLink);
                     },
                     "go away": function() {
                         micToggle();
@@ -56,6 +61,16 @@
             micToggle();
             nextTimer = setTimeout(nextTimerExpired, 5000);
         };
+
+        function speakUrl(url) {
+            var audioElem = document.createElement("audio");
+            audioElem.setAttribute("autoplay", "true");
+            audioElem.setAttribute("preload", "auto");
+            audioElem.setAttribute("src", "/tts/article?u=" + encodeURIComponent(url));
+            document.body.appendChild(audioElem);
+            audioElem.onended = next;
+            //document.getElementById("transcript").innerHTML = "<p>" + text + "</p>";
+        }
 
         function speakText(text) {
             var audioElem = document.createElement("audio");
@@ -195,7 +210,7 @@
 				 var activate = function(){
 					 add_post(posts[currIndex],function(){
 						 speakText(dialogue(posts[currIndex]));
-                         //console.log(posts[currIndex]);
+                         console.log(posts[currIndex]);
 					 });
 					 
 					 
@@ -228,7 +243,7 @@
 		   					 }
 		   					 elem.style.display="";
 							 speakText(dialogue(post));
-                             //console.log(post);
+                             console.log(post);
 					 	});
 					 } else {
 					 	
@@ -240,7 +255,7 @@
 	   					 }
 	   					 elem.style.display="";
 						 speakText(dialogue(post));
-                         //console.log(post);
+                         console.log(post);
 					 }
 					 
 				 }
@@ -257,6 +272,7 @@
                          if (post.type == "link") {
                              string += post.name;
                              string += " from " + post.caption;
+                             lastLink = post.link;
                          }
                      }
                      else if(post.type == "photo") {
@@ -277,7 +293,7 @@
 					 currIndex--;
 					 currIndex = (currIndex<0)? posts.length-1: currIndex;
 					 var post = posts[currIndex];
-					 //console.log(post);
+					 console.log(post);
 					 var ids = post.id.split("_");
 					 var element_id = "post_"+ids[0]+"_"+ids[1];
 					 var elem = document.getElementById(element_id);
@@ -291,7 +307,7 @@
 		   					 }
 		   					 elem.style.display="";
 							 speakText(dialogue(post));
-                             //console.log(post);
+                             console.log(post);
 							
 					 	});
 					 } else {
@@ -304,7 +320,7 @@
 	   					 }
 	   					 elem.style.display="";
 						 speakText(dialogue(post));
-                         //console.log(post);
+                         console.log(post);
 					 }
 					 
 					 
@@ -371,38 +387,43 @@
 	   <div id="status" style="margin: 10px auto;">Checking with facebook. Please Wait ... </div>
 	   <br/><hr/>
 	   <br/>
-	   <div class="content_main" style="display: table; width: 100%;">
-           <img src="https://www.google.com/intl/en/chrome/assets/common/images/content/mic-animate.gif"
-                style="margin: 0px auto; display: none; text-align: center;"
-                id="mic-on"/>
-           <img src="https://www.google.com/intl/en/chrome/assets/common/images/content/mic.gif"
-                style="margin: 0px auto; display: table-cell; text-align: center;"
-                id="mic-off"/>
-		<div class="content_center" style="margin: 0px auto; display: table;">
-			<div id="user_feed" class="slider">
-				<!-- <img src="images/image1.jpg" />
-				<img src="images/image2.jpg" />
-				<div class="just_text">This one's just text.</div>
-				<img src="images/image3.jpg" />
-				<div><img src="images/image4.jpg" /><span class="caption">This one has a caption</span></div> -->
-					
-			</div>
-		</div>
-	   </div>
-	   <br/><br/>
-        <div id="transcript" style="text-align: center;">
-        </div>
-	   <div class ="navigation_buttons">
-		<div class="content_left" style="float: left; width: 50%; text-align: right;">
-			<input id="go_previous" type="button" value="previous" />
-		</div>
-		
-		
-		<div id="content_right" style="float: left; width: 50%; text-align: left;">	
-			<input id="go_next" type="button" value="next" />
-		</div>
-		
-	   </div>
+       <div style="width: 50%;">
+           <div class="content_main" style="display: table; width: 100%;">
+               <img src="https://www.google.com/intl/en/chrome/assets/common/images/content/mic-animate.gif"
+                    style="margin: 0px auto; display: none; text-align: center;"
+                    id="mic-on"/>
+               <img src="https://www.google.com/intl/en/chrome/assets/common/images/content/mic.gif"
+                    style="margin: 0px auto; display: table-cell; text-align: center;"
+                    id="mic-off"/>
+            <div class="content_center" style="margin: 0px auto; display: table;">
+                <div id="user_feed" class="slider">
+                    <!-- <img src="images/image1.jpg" />
+                    <img src="images/image2.jpg" />
+                    <div class="just_text">This one's just text.</div>
+                    <img src="images/image3.jpg" />
+                    <div><img src="images/image4.jpg" /><span class="caption">This one has a caption</span></div> -->
+
+                </div>
+            </div>
+           </div>
+           <br/><br/>
+            <div id="transcript" style="text-align: center;">
+            </div>
+           <div class ="navigation_buttons">
+            <div class="content_left" style="float: left; width: 50%; text-align: right;">
+                <input id="go_previous" type="button" value="previous" />
+            </div>
+
+
+            <div id="content_right" style="float: left; width: 50%; text-align: left;">
+                <input id="go_next" type="button" value="next" />
+            </div>
+
+           </div>
+       </div>
+       <div id="iframeholder" style="width: 50%;">
+
+       </div>
 
     <script type="text/javascript">
         var micOff = document.getElementById("mic-off"),

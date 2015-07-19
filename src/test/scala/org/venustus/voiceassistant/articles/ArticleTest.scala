@@ -8,12 +8,16 @@ import org.scalatest.{FlatSpec, Matchers}
 class ArticleTest extends FlatSpec with Matchers {
 
     "Article content extractor" should "extract main content" in {
+        /*
         val article = new Article("https://www.washingtonpost.com/news/morning-mix/wp/2015/07/17/winning-formula-usa-tops-international-math-olympiad-for-first-time-in-21-years/")
         println(article.getContent)
         val article2 = new Article("https://medium.com/firm-narrative/want-a-better-pitch-watch-this-328b95c2fd0b")
         println(article2.getContent)
         val article3 = new Article("https://blogs.janestreet.com/introducing-incremental/?utm_source=rss&utm_medium=rss&utm_campaign=introducing-incremental")
         println(article3.getContent)
+        */
+        val article4 = new Article("https://www.yahoo.com/tech/amazons-echo-brings-the-star-trek-computer-to-124102850474.html")
+        println(article4.getContent)
     }
 
 }
