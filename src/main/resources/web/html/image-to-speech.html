@@ -30,12 +30,11 @@
             var result = results[i];
 			var content = result.content;
 			
-			content = content.replace(/<[^>]*>/g, "");
-			content = content.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+			content = content.replace(/<[^>]*>/g, "").replace(/[^\w\s]/gi, '');
 			
 			console.log(content);
 			
-			if(content.length > ans.length)
+			if(content.split(" ").length >= ans.split(" ").length)
 				ans = content;
             
           }
@@ -47,7 +46,7 @@
 		} else {
 			ans = "I think the image is about " + ans;
 		}
-		document.getElementById("content").innerHTML = "<img src='"+link+"' /><br/><br/>"+ans;
+		document.getElementById("content").innerHTML = "<img style='max-width:500px' src='"+link+"' /><br/><br/>"+ans;
       }
 
       function OnLoad() {
